@@ -62,6 +62,7 @@ public class WifiIotPlugin
   private MethodChannel channel;
   private EventChannel eventChannel;
 
+  private Network spNetwork;
   private WifiManager moWiFi;
   private Context moContext;
   private WifiApManager moWiFiAPManager;
@@ -802,38 +803,58 @@ public class WifiIotPlugin
     boolean shouldReply = true;
     if (Build.VERSION.SDK_INT > Build.VERSION_CODES.LOLLIPOP && manager != null) {
       if (useWifi) {
-        NetworkRequest.Builder builder;
-        builder = new NetworkRequest.Builder();
-        /// set the transport type do WIFI
-        builder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
-        shouldReply = false;
-        manager.requestNetwork(
-            builder.build(),
-            new ConnectivityManager.NetworkCallback() {
-              @Override
-              public void onAvailable(Network network) {
-                super.onAvailable(network);
-                boolean success = false;
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                  success = manager.bindProcessToNetwork(network);
-
-                } else {
-                  success = ConnectivityManager.setProcessDefaultNetwork(network);
-                }
-                manager.unregisterNetworkCallback(this);
-                final boolean result = success;
-                final Handler handler = new Handler(Looper.getMainLooper());
-                handler.post(
-                    new Runnable() {
-                      @Override
-                      public void run() {
-                        poResult.success(result);
+        if (spNetwork == null) {
+          NetworkRequest.Builder builder;
+          builder = new NetworkRequest.Builder();
+          /// set the transport type do WIFI
+          builder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
+          shouldReply = false;
+          manager.requestNetwork(
+                  builder.build(),
+                  new ConnectivityManager.NetworkCallback() {
+                    @Override
+                    public void onAvailable(Network network) {
+                      super.onAvailable(network);
+                      boolean success = false;
+                      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                        success = manager.bindProcessToNetwork(network);
+                      } else {
+                        success = ConnectivityManager.setProcessDefaultNetwork(network);
                       }
-                    });
+                      manager.unregisterNetworkCallback(this);
+                      final boolean result = success;
+                      final Handler handler = new Handler(Looper.getMainLooper());
+                      handler.post(
+                        new Runnable() {
+                          @Override
+                          public void run() {
+                            poResult.success(result);
+                          }
+                        }
+                      );
+                    }
+                  });
+        } else {
+          shouldReply = false;
+          boolean s_success = false;
+          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            s_success = manager.bindProcessToNetwork(spNetwork);
+          } else {
+            s_success = ConnectivityManager.setProcessDefaultNetwork(spNetwork);
+          }
+          final boolean result = s_success;
+          final Handler handler = new Handler(Looper.getMainLooper());
+          handler.post(
+            new Runnable() {
+              @Override
+              public void run() {
+                poResult.success(result);
               }
-            });
-
+            }
+          );
+        }
       } else {
+        if (spNetwork != null) spNetwork = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
           success = manager.bindProcessToNetwork(null);
         } else {
@@ -1399,6 +1420,7 @@ public class WifiIotPlugin
               public void onAvailable(@NonNull Network network) {
                 super.onAvailable(network);
                 if (!resultSent) {
+                  spNetwork = network;
                   poResult.success(true);
                   resultSent = true;
                 }
