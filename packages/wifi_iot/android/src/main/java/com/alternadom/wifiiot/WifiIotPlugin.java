@@ -854,7 +854,6 @@ public class WifiIotPlugin
           );
         }
       } else {
-        if (spNetwork != null) spNetwork = null;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
           success = manager.bindProcessToNetwork(null);
         } else {
@@ -1155,6 +1154,7 @@ public class WifiIotPlugin
         connectivityManager.unregisterNetworkCallback(networkCallback);
         networkCallback = null;
         disconnected = true;
+        if (spNetwork != null) spNetwork = null;
       } else if (networkSuggestions != null) {
         final int networksRemoved = moWiFi.removeNetworkSuggestions(networkSuggestions);
         disconnected = networksRemoved == WifiManager.STATUS_NETWORK_SUGGESTIONS_SUCCESS;
