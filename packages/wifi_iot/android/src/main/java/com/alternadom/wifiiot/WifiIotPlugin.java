@@ -1,5 +1,7 @@
 package com.alternadom.wifiiot;
 
+import static android.os.PatternMatcher.PATTERN_PREFIX;
+
 import android.Manifest;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -24,6 +26,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.PatternMatcher;
 import android.provider.Settings;
 import android.util.Log;
 import androidx.annotation.NonNull;
@@ -903,6 +906,7 @@ public class WifiIotPlugin
     new Thread() {
       public void run() {
         String ssid = poCall.argument("ssid");
+        String pattern = poCall.argument("pattern");
         String bssid = poCall.argument("bssid");
         String password = poCall.argument("password");
         String security = poCall.argument("security");
@@ -914,6 +918,7 @@ public class WifiIotPlugin
         connectTo(
             poResult,
             ssid,
+            pattern,
             bssid,
             password,
             security,
@@ -1038,6 +1043,7 @@ public class WifiIotPlugin
     new Thread() {
       public void run() {
         String ssid = poCall.argument("ssid");
+        String pattern = poCall.argument("pattern");
         String bssid = poCall.argument("bssid");
         String password = poCall.argument("password");
         Boolean joinOnce = poCall.argument("join_once");
@@ -1060,6 +1066,7 @@ public class WifiIotPlugin
         connectTo(
             poResult,
             ssid,
+            pattern,
             bssid,
             password,
             security,
@@ -1292,6 +1299,7 @@ public class WifiIotPlugin
   private void connectTo(
       final Result poResult,
       final String ssid,
+      final String pattern,
       final String bssid,
       final String password,
       final String security,
@@ -1377,8 +1385,13 @@ public class WifiIotPlugin
       } else {
         // Make new network specifier
         final WifiNetworkSpecifier.Builder builder = new WifiNetworkSpecifier.Builder();
-        // set ssid
-        builder.setSsid(ssid);
+        // set ssid or pattern
+        if (pattern != null) {
+          final PatternMatcher patt = new PatternMatcher(pattern, PATTERN_PREFIX);
+          builder.setSsidPattern(patt);
+        } else {
+          builder.setSsid(ssid);
+        }
         builder.setIsHiddenSsid(isHidden != null ? isHidden : false);
         if (bssid != null) {
           final MacAddress macAddress = macAddressFromBssid(bssid);

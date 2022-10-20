@@ -323,6 +323,7 @@ class WiFiForIoTPlugin {
   ///   otherwise.
   static Future<bool> connect(
     String ssid, {
+    String? pattern,
     String? bssid,
     String? password,
     NetworkSecurity security = NetworkSecurity.NONE,
@@ -348,6 +349,7 @@ class WiFiForIoTPlugin {
     try {
       bResult = await _channel.invokeMethod('connect', {
         "ssid": ssid.toString(),
+        "pattern": pattern?.toString(),
         "bssid": bssid?.toString(),
         "password": password?.toString(),
         "join_once": joinOnce,
@@ -461,6 +463,7 @@ class WiFiForIoTPlugin {
   ///   otherwise.
   static Future<bool> findAndConnect(
     String ssid, {
+    String? pattern,
     String? bssid,
     String? password,
     bool joinOnce = true,
@@ -486,6 +489,7 @@ class WiFiForIoTPlugin {
     try {
       bResult = await _channel.invokeMethod('findAndConnect', {
         "ssid": ssid.toString(),
+        "pattern": pattern?.toString(),
         "bssid": bssid?.toString(),
         "password": password?.toString(),
         "join_once": joinOnce,
