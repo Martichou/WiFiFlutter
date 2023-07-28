@@ -1438,8 +1438,13 @@ public class WifiIotPlugin
               }
             };
 
-        connectivityManager.requestNetwork(
-            networkRequest, networkCallback, handler, timeoutInSeconds * 1000);
+        if (timeoutInSeconds > 0) {
+          connectivityManager.requestNetwork(
+              networkRequest, networkCallback, handler, timeoutInSeconds * 1000);
+        } else {
+          connectivityManager.requestNetwork(
+              networkRequest, networkCallback, handler);
+        }
       }
     }
   }
